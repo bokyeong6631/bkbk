@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BoardMessage">
+	<insert id="insertData" parameterType="kr.co.bkbk.message.dto.BoardMessageDTO">
+		INSERT INTO TB_BOARD_MESSAGE(
+			USER_ID
+			,S_MESSAGE_ID
+			,RECEIVE_ID
+			,TITLE
+			,CONTENTS
+			,REG_DT
+		)VALUES(
+			#{userId}
+			,SEQ_SMS.NEXTVAL
+			,#{receiveId}
+			,#{title}
+			,#{contents}
+			,SYSDATE
+		)
+	</insert>
+	
+	<select id="selectList" parameterType="java.lang.Integer" resultType="kr.co.bkbk.message.dto.BoardMessageDTO">
+		SELECT * FROM TB_BOARD_MESSAGE
+		WHERE USER_ID = #{userId}
+	</select>
+	
+	<delete id="deleteData" parameterType="java.lang.Integer">
+		DELETE TB_BOARD_MESSAGE
+		WHERE S_MESSAGE_ID = #{sMessageId}
+	</delete>
+
+</mapper>

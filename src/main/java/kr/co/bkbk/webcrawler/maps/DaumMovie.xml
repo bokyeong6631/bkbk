@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DaumMovie">
+	<insert id="insertData" parameterType="kr.co.bkbk.webcrawler.dto.DaumMovieDTO">
+		INSERT INTO DAUMMOVIE(
+			RNO
+			,MWRITER
+			,MTITLE
+			,MREVIEWS
+			,MSCORE
+			,MDATE
+		)VALUES(
+			DAUMMOVIE_SEQ.NEXTVAL
+			,#{mwriter}
+			,#{mtitle}
+			,#{mreviews}
+			,#{mscore}
+			,#{mdate}
+		)
+	</insert>
+	
+	<select id="selectList" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO" resultType="kr.co.bkbk.webcrawler.dto.DaumMovieDTO">
+		SELECT B.*
+		from(
+    		select rownum as rnum, A.*
+    		FROM (
+        		SELECT * FROM DAUMMOVIE
+    		)A
+    		where rownum <![CDATA[<=]]> (#{page} * #{rows})
+		)B
+		where rnum <![CDATA[>]]>(#{page}-1) * #{rows}
+	</select>
+	
+	<select id="selectCount" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO" resultType="int">
+		SELECT COUNT(*) FROM DAUMMOVIE
+	</select>
+</mapper>
