@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BoardDoc">
+	<select id="selectListAll" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		SELECT * FROM TB_BOARD_DOC
+		ORDER BY DOC_ID DESC
+	</select>
+	
+	<select id="selectImageBydocId" parameterType="java.lang.Integer" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		SELECT * FROM TB_BOARD_DOC
+		WHERE DOC_ID = #{docId}
+	</select>
+	
+	
+	<select id="selectListByLikeId" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO" parameterType="java.lang.Integer">
+		SELECT BD.*
+		, FN_USERNAME(BD.USER_ID) AS USER_NAME
+		, BL.LIKE_YN
+		, BL.LIKE_ID
+		,(SELECT BM.MAP_NAME FROM TB_BOARD_MAP BM WHERE BM.MAP_ID = BD.MAP_ID) AS MAP_NAME
+		,(SELECT COUNT(*) FROM TB_BOARD_COMMENT BCM WHERE BCM.DOC_ID = BD.DOC_ID) AS CNT_COMMENT
+		,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = BD.DOC_ID AND BL.LIKE_YN = 'Y') AS CNT_LIKE_Y
+		,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = BD.DOC_ID AND BL.LIKE_YN = 'N') AS CNT_LIKE_N
+		FROM TB_BOARD_DOC BD
+		INNER JOIN TB_BOARD_LIKE BL
+		ON BD.DOC_ID = BL.DOC_ID
+		AND BL.USER_ID = #{viewerId}
+	</select>
+
+
+	<select id="selectListAndUserId" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		SELECT BC.*
+		,FN_USERNAME(BC.USER_ID) AS USER_NAME
+		,(SELECT BM.MAP_NAME FROM TB_BOARD_MAP BM WHERE BM.MAP_ID = BC.MAP_ID) AS MAP_NAME
+		,(SELECT COUNT(*) FROM TB_BOARD_COMMENT BCM WHERE BCM.DOC_ID = BC.DOC_ID) AS CNT_COMMENT
+		,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = BC.DOC_ID AND BL.LIKE_YN = 'Y') AS CNT_LIKE_Y
+		,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = BC.DOC_ID AND BL.LIKE_YN = 'N') AS CNT_LIKE_N
+		FROM TB_BOARD_DOC BC
+		WHERE BC.USER_ID=#{userId}
+	</select>
+
+	<select id="selectOne" parameterType="kr.co.bkbk.board.map.dto.BoardDocDTO" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		SELECT BD.*
+		    , FN_USERNAME(BD.USER_ID) AS USER_NAME
+		    , BL.LIKE_YN
+		    , BL.LIKE_ID
+		FROM TB_BOARD_DOC BD
+		LEFT JOIN TB_BOARD_LIKE BL
+		ON BD.DOC_ID = BL.DOC_ID
+		    AND BL.USER_ID = #{viewerId}
+		WHERE BD.DOC_ID = #{docId}
+	</select>
+	
+	<update id="updateCntRead" parameterType="java.lang.Integer">
+		UPDATE TB_BOARD_DOC
+		SET CNT_READ = CNT_READ+1
+		WHERE DOC_ID=#{docId}
+	</update>
+	
+		<insert id="insertData" parameterType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		<selectKey keyProperty="docId" resultType="java.lang.Integer" order="BEFORE">
+		 	SELECT SEQ_DOC.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TB_BOARD_DOC(
+			DOC_ID
+			,USER_ID
+			,MAP_ID
+			,TITLE
+			,BOARD_CONTENTS
+			,LOCK_YN
+			,LOCK_PW
+			)VALUES(
+			#{docId}
+			,#{userId}
+			,#{mapId}
+			,#{title}
+			,#{boardContents}
+			,#{lockYn}
+			,#{lockPw}
+			)
+	</insert>
+	
+	<select id="selectCount" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO"  resultType="int">
+		SELECT count(*)
+		FROM TB_BOARD_DOC
+		WHERE MAP_ID = #{mapId}
+		<if test="searchType != null and searchType != ''">
+			<choose>
+				<when test="searchType eq 'T'.toString()">
+					AND TITLE LIKE '%' || #{searchText} || '%'
+				</when>
+				<when test="searchType eq 'C'.toString()">
+					AND BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+				</when>
+				<when test="searchType eq 'TC'.toString()">
+					AND (TITLE LIKE '%' || #{searchText} || '%'
+						OR BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+						)
+				</when>
+				<when test="searchType eq 'U'.toString()">
+					AND USER_ID IN(
+					 SELECT USER_ID
+					 FROM TB_USER
+					 WHERE NAME LIKE '%' || #{searchText} || '%'
+					 )
+					
+				</when>
+			</choose>
+		</if>
+	</select>
+
+	<select id="selectList" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		SELECT B.*
+			,FN_USERNAME(B.USER_ID) AS USER_NAME
+			,(SELECT COUNT(*) FROM TB_BOARD_FILE BF WHERE BF.DOC_ID = B.DOC_ID) AS CNT_FILE
+			,(SELECT COUNT(*) FROM TB_BOARD_COMMENT BC WHERE BC.DOC_ID = B.DOC_ID) AS CNT_COMMENT
+			,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = B.DOC_ID AND BL.LIKE_YN = 'Y') AS CNT_LIKE_Y
+			,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = B.DOC_ID AND BL.LIKE_YN = 'N') AS CNT_LIKE_N
+		from(
+    		select rownum as rnum, A.*
+    		FROM (
+        		SELECT BD.*
+        		FROM TB_BOARD_DOC BD
+        		WHERE MAP_ID=#{mapId}
+				<if test="searchType != null and searchType != ''">
+					<choose>
+						<when test="searchType eq 'T'.toString()">
+							AND TITLE LIKE '%' || #{searchText} || '%'
+						</when>
+						<when test="searchType eq 'C'.toString()">
+							AND BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+						</when>
+						<when test="searchType eq 'TC'.toString()">
+							AND (TITLE LIKE '%' || #{searchText} || '%'
+								OR BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+								)
+						</when>
+						<when test="searchType eq 'U'.toString()">
+							AND USER_ID IN(
+							 SELECT USER_ID
+							 FROM TB_USER
+							 WHERE NAME LIKE '%' || #{searchText} || '%'
+							 )
+							
+						</when>
+					</choose>
+				</if>
+        		order by REG_DT desc
+    		)A
+    		where rownum <![CDATA[<=]]> (#{page} * #{rows})
+		)B
+		where rnum <![CDATA[>]]>(#{page}-1) * #{rows}
+	</select>
+	
+	<update id="updateDoc" parameterType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		UPDATE TB_BOARD_DOC
+		SET TITLE=#{title}, BOARD_CONTENTS=#{boardContents}, LOCK_YN=#{lockYn}, LOCK_PW=#{lockPw}
+		WHERE DOC_ID=#{docId}
+	</update>
+	
+	<delete id="deleteData" parameterType="java.lang.Integer">
+		DELETE FROM TB_BOARD_DOC
+		WHERE DOC_ID=#{docId}
+	</delete>
+	
+	<select id="selectCountByuserId" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO"  resultType="int">
+		SELECT count(*)
+		FROM TB_BOARD_DOC
+		WHERE user_ID = #{userId}
+		<if test="searchType != null and searchType != ''">
+			<choose>
+				<when test="searchType eq 'T'.toString()">
+					AND TITLE LIKE '%' || #{searchText} || '%'
+				</when>
+				<when test="searchType eq 'C'.toString()">
+					AND BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+				</when>
+				<when test="searchType eq 'TC'.toString()">
+					AND (TITLE LIKE '%' || #{searchText} || '%'
+						OR BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+						)
+				</when>
+				<when test="searchType eq 'U'.toString()">
+					AND USER_ID IN(
+					 SELECT USER_ID
+					 FROM TB_USER
+					 WHERE NAME LIKE '%' || #{searchText} || '%'
+					 )
+					
+				</when>
+			</choose>
+		</if>
+	</select>
+
+	<select id="selectListByuserId" parameterType="kr.co.bkbk.board.map.dto.BoardSearchDTO" resultType="kr.co.bkbk.board.map.dto.BoardDocDTO">
+		SELECT B.*
+			,FN_USERNAME(B.USER_ID) AS USER_NAME
+			,(SELECT BM.MAP_NAME FROM TB_BOARD_MAP BM WHERE BM.MAP_ID = B.MAP_ID) AS MAP_NAME
+			,(SELECT COUNT(*) FROM TB_BOARD_FILE BF WHERE BF.DOC_ID = B.DOC_ID) AS CNT_FILE
+			,(SELECT COUNT(*) FROM TB_BOARD_COMMENT BC WHERE BC.DOC_ID = B.DOC_ID) AS CNT_COMMENT
+			,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = B.DOC_ID AND BL.LIKE_YN = 'Y') AS CNT_LIKE_Y
+			,(SELECT COUNT(*) FROM TB_BOARD_LIKE BL WHERE BL.DOC_ID = B.DOC_ID AND BL.LIKE_YN = 'N') AS CNT_LIKE_N
+		from(
+    		select rownum as rnum, A.*
+    		FROM (
+        		SELECT BD.*
+        		FROM TB_BOARD_DOC BD
+        		WHERE USER_ID=#{userId}
+				<if test="searchType != null and searchType != ''">
+					<choose>
+						<when test="searchType eq 'T'.toString()">
+							AND TITLE LIKE '%' || #{searchText} || '%'
+						</when>
+						<when test="searchType eq 'C'.toString()">
+							AND BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+						</when>
+						<when test="searchType eq 'TC'.toString()">
+							AND (TITLE LIKE '%' || #{searchText} || '%'
+								OR BOARD_CONTENTS LIKE '%' || #{searchText} || '%'
+								)
+						</when>
+						<when test="searchType eq 'U'.toString()">
+							AND USER_ID IN(
+							 SELECT USER_ID
+							 FROM TB_USER
+							 WHERE NAME LIKE '%' || #{searchText} || '%'
+							 )
+							
+						</when>
+					</choose>
+				</if>
+        		order by REG_DT desc
+    		)A
+    		where rownum <![CDATA[<=]]> (#{page} * #{rows})
+		)B
+		where rnum <![CDATA[>]]>(#{page}-1) * #{rows}
+	</select>
+	
+	
+	</mapper>

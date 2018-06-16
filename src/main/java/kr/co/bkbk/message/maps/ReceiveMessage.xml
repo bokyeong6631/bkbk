@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReceiveMessage">
+	<insert id="insertData" parameterType="kr.co.bkbk.message.dto.ReceiveMessageDTO">
+		INSERT INTO TB_RECEIVE_MESSAGE(
+			RECEIVE_ID
+			,TITLE
+			,CONTENTS
+			,REG_DT
+			,R_MESSAGE_ID
+			)VALUES(
+			#{receiveId}
+			,#{title}
+			,#{contents}
+			,SYSDATE
+			,SEQ_RMS.NEXTVAL
+			)
+	</insert>
+	
+	<select id="selectList" parameterType="java.lang.Integer" resultType="kr.co.bkbk.message.dto.ReceiveMessageDTO">
+		SELECT * FROM TB_RECEIVE_MESSAGE
+		WHERE RECEIVE_ID = #{receiveId}
+	</select>
+	
+	<select id="selectOne" parameterType="java.lang.Integer" resultType="kr.co.bkbk.message.dto.ReceiveMessageDTO">
+			SELECT * FROM TB_RECEIVE_MESSAGE
+			WHERE R_MESSAGE_ID = #{rMessageId}
+	</select>
+
+</mapper>

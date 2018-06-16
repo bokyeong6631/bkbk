@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="User">
+	<insert id="insertData" parameterType="kr.co.bkbk.user.dto.UserDTO">
+		<selectKey keyProperty="userId" resultType="int" order="BEFORE">
+		 	SELECT SEQ_USER.NEXTVAL FROM DUAL
+		</selectKey>
+	INSERT INTO TB_USER(
+		USER_ID
+		,LOGIN_ID
+		,LOGIN_PW
+		,NAME
+		,PHONE
+		,EMAIL
+		)VALUES(
+		#{userId}
+		,#{loginId}
+		,#{loginPw}
+		,#{name}
+		,#{phone}
+		,#{email}
+		)
+	</insert>
+	<select id="selectCountByloginId" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM TB_USER
+		WHERE LOGIN_ID=#{loginId}
+	</select>
+	<select id="selectCountByPhone" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM TB_USER
+		WHERE PHONE=#{phone}
+	</select>
+	<select id="selectCountByEmail" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM TB_USER
+		WHERE EMAIL=#{email}
+	</select>
+	<select id="selectFindId" parameterType="kr.co.bkbk.user.dto.UserDTO" resultType="java.lang.String">
+		SELECT LOGIN_ID
+		FROM TB_USER
+		WHERE NAME=#{name} AND PHONE=#{phone}
+	</select>
+	<update id="updatePw" parameterType="kr.co.bkbk.user.dto.UserDTO" >
+		UPDATE TB_USER
+		SET LOGIN_PW=#{loginPw}
+		WHERE LOGIN_ID=#{loginId} AND PHONE=#{phone}
+	</update>
+		<select id="selectCountByloignPw" parameterType="kr.co.bkbk.user.dto.UserDTO" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_USER
+		WHERE LOGIN_ID=#{loginId} AND PHONE=#{phone}
+	</select>	
+	
+	
+	<select id="selectByloginID" parameterType="java.lang.String" resultType="kr.co.bkbk.user.dto.UserDTO">
+		SELECT * FROM TB_USER
+		where LOGIN_ID=#{loginId}
+	</select>
+	<select id="selectOne" parameterType="java.lang.Integer" resultType="kr.co.bkbk.user.dto.UserDTO">
+		SELECT * FROM TB_USER
+		where USER_ID=#{userId}
+	</select>	
+	
+	<update id="updateData" parameterType="kr.co.bkbk.user.dto.UserDTO">
+		UPDATE TB_USER
+		SET 
+		NAME=#{name}
+		,PHONE=#{phone}
+		,EMAIL=#{email}
+		<if test="loginPw !=null and loginPw !=''">
+		,LOGIN_PW=#{loginPw}
+		</if>
+		WHERE USER_ID=#{userId}
+	</update>
+	<select id="selectAllList" resultType="kr.co.bkbk.user.dto.UserDTO">
+		SELECT * FROM TB_USER
+	</select>
+	
+	
+	</mapper>

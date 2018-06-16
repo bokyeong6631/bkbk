@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="popupFile">
+<insert id="insertData" parameterType="kr.co.bkbk.popup.dto.PopupFileDTO">
+	INSERT INTO TB_POPUP_FILE(
+	POPUP_FILE_ID
+	,POPUP_ID
+	,ORG_FILE_NAME
+	,NEW_FILE_NAME
+	,FILE_TYPE
+	,FILE_SIZE
+	,FILE_PATH
+	,FILE_EXT
+	)VALUES(
+	SEQ_POP_FILE.NEXTVAL
+	,#{popupId}
+	,#{orgFileName}
+	,#{newFileName}
+	,#{fileType}
+	,#{fileSize}
+	,#{filePath}
+	,#{fileExt}
+	)
+</insert>
+
+<select id="selectList" resultType="kr.co.bkbk.popup.dto.PopupFileDTO">
+	SELECT * FROM TB_POPUP_FILE
+</select>
+
+<select id="selectOne" parameterType="int" resultType="kr.co.bkbk.popup.dto.PopupFileDTO">
+	SELECT * FROM TB_POPUP_FILE
+	WHERE POPUP_ID=#{popupId}
+</select>
+
+
+</mapper>

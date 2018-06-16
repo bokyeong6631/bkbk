@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BoardFile">
+<insert id="insertData" parameterType="kr.co.bkbk.board.map.dto.BoardFileDTO">
+	INSERT INTO TB_BOARD_FILE(
+		DOC_ID
+		,FILE_SNO
+		,ORG_FILE_NAME
+		,NEW_FILE_NAME
+		,FILE_TYPE
+		,FILE_SIZE
+		,FILE_PATH
+		,FILE_EXT
+		,REG_DT
+	)VALUES(
+		#{docId}
+		,(SELECT NVL(COUNT(*),0)+1 FROM TB_BOARD_FILE WHERE DOC_ID=#{docId})
+		,#{orgFileName}
+		,#{newFileName}
+		,#{fileType}
+		,#{fileSize}
+		,#{filePath}
+		,#{fileExt}
+		,SYSDATE
+	)
+</insert>
+<!-- <update id="updateData" parameterType="kr.co.bkbk.board.map.dto.BoardFileDTO"> -->
+<!-- 	UPDATE TB_BOARD_FILE -->
+<!-- 	SET ORG_FILE_NAME=#{orgFileName}, NEW_FILE_NAME=, -->
+<!-- 	WHERE DOC_ID=152 AND FILE_SNO=#{fileSno} -->
+
+<!-- </update> -->
+
+
+
+<select id="selectList" parameterType="java.lang.Integer" resultType="kr.co.bkbk.board.map.dto.BoardFileDTO">
+	SELECT * FROM TB_BOARD_FILE
+	WHERE DOC_ID=#{docId}
+</select>
+
+<select id="selectOne" parameterType="kr.co.bkbk.board.map.dto.BoardFileDTO" resultType="kr.co.bkbk.board.map.dto.BoardFileDTO">
+	SELECT * FROM TB_BOARD_FILE
+	WHERE DOC_ID=#{docId} AND FILE_SNO=#{fileSno}
+</select>
+
+<delete id="deleteData" parameterType="java.lang.Integer">
+	DELETE TB_BOARD_FILE
+	WHERE DOC_ID=#{docId}
+</delete>
+
+<delete id="deleteOnlyFile" parameterType="kr.co.bkbk.board.map.dto.BoardFileDTO">
+	DELETE TB_BOARD_FILE
+	WHERE DOC_ID=#{docId} AND FILE_SNO=#{fileSno}
+</delete>
+
+
+<select id="selectByCntDocId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT COUNT(*) FROM TB_BOARD_FILE
+	WHERE DOC_ID = ${docId}
+</select>
+
+</mapper>
